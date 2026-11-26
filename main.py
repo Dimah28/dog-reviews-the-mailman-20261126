@@ -81,8 +81,16 @@ def main() -> None:
     _validate(REVIEW)
     out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
     os.makedirs(out_dir, exist_ok=True)
-    with open(os.path.join(out_dir, "entry.txt"), "w", encoding="utf-8") as f:
+    out_path = os.path.join(out_dir, "entry.txt")
+    with open(out_path, "w", encoding="utf-8") as f:
         f.write(REVIEW)
+    # Round-trip check: a partial write or an encoding slip must fail
+    # loudly instead of shipping a short or garbled line to the judge.
+    with open(out_path, "r", encoding="utf-8") as f:
+        written = f.read()
+    if written != REVIEW:
+        raise ValueError("entry.txt round-trip mismatch: written bytes differ")
+    _validate(written)
 
 
 if __name__ == "__main__":
